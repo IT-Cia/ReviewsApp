@@ -1,0 +1,111 @@
+﻿@page "/reviews/add"
+
+@using ReviewsApp.DataAccess.Entities;
+@using ReviewsApp.Application;
+
+@inject AuthenticationStateProvider AuthenticationState;
+@inject NavigationManager NavigationManager;
+@inject IDataService<Review> ReviewService;
+
+<h3>Новый отзыв</h3>
+
+<EditForm Model="@Model" OnValidSubmit="@Submit">
+    <DataAnnotationsValidator />
+    <div class="main-block">
+        <div class="row mb-3">
+            <label for="inputUserName" class="col-sm-2 col-form-label">Имя пользователя</label>
+            <div class="col-sm-10">
+                <InputText type="text" class="form-control" id="inputUserName" name="userName" @bind-Value="Model.UserName" />
+                <ValidationMessage For="@(() => Model.UserName)" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputOrganisation" class="col-sm-2 col-form-label">Название организации</label>
+            <div class="col-sm-10">
+                <InputText type="text" class="form-control" id="inputOrganisation" name="organisation" @bind-Value="Model.OrganisationName" />
+                <ValidationMessage For="@(() => Model.OrganisationName)" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputAddress" class="col-sm-2 col-form-label">Адрес организации</label>
+            <div class="col-sm-10">
+                <InputText type="text" class="form-control" id="inputAddress" name="address" @bind-Value="Model.OrganisationAddress" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputAdvantages" class="col-sm-2 col-form-label">Что понравилось</label>
+            <div class="col-sm-10">
+                <InputTextArea class="form-control" id="inputAdvantages" name="advantages" @bind-Value="Model.Advantages"></InputTextArea>
+                <ValidationMessage For="@(() => Model.Advantages)" />
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputDisadvantages" class="col-sm-2 col-form-label">Что не понравилось</label>
+            <div class="col-sm-10">
+                <InputTextArea class="form-control" id="inputDisadvantages" name="disadvantages" @bind-Value="Model.Disadvantages"></InputTextArea>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label for="inputComments" class="col-sm-2 col-form-label">Комментарии</label>
+            <div class="col-sm-10">
+                <InputTextArea class="form-control" id="inputComments" name="comments" @bind-Value="Model.Comments"></InputTextArea>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <label class="col-sm-2 col-form-label">Оценка</label>
+            <div class="col-sm-10">
+                <div class="rating" data-fbs-toggle="rating">
+                    <label class="@((Model!.Evaluation >= 1? "rating-item active" : "rating-item"))" for="rating1">
+                        <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                        <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                    </label>
+                    <input type="radio" id="rating1" name="evaluation" value="1" aria-label="Bad" @onclick="@(e => ChangeRating(1))" />
+                    <label class="@((Model.Evaluation >= 2? "rating-item active" : "rating-item"))" for="rating2">
+                        <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                        <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                    </label>
+                    <input type="radio" id="rating2" name="evaluation" value="2" aria-label="Poor" @onclick="@(e => ChangeRating(2))" />
+                    <label class="@((Model.Evaluation >= 3? "rating-item active" : "rating-item"))" for="rating3">
+                        <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                        <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                    </label>
+                    <input type="radio" id="rating3" name="evaluation" value="3" aria-label="OK" @onclick="@(e => ChangeRating(3))" />
+                    <label class="@((Model.Evaluation >= 4? "rating-item active" : "rating-item"))" for="rating4">
+                        <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                        <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                    </label>
+                    <input type="radio" id="rating4" name="evaluation" value="4" aria-label="Good" @onclick="@(e => ChangeRating(4))" />
+                    <label class="@((Model.Evaluation >= 5? "rating-item active" : "rating-item"))" for="rating5">
+                        <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                        <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                    </label>
+                    <input type="radio" id="rating5" name="evaluation" value="5" aria-label="Excellent" @onclick="@(e => ChangeRating(5))" />
+                </div>
+                <ValidationMessage For="@(() => Model.Evaluation)" />
+            </div>
+        </div>
+    </div>
+    <div class="foot-panel">
+        <button class="btn btn-lg btn-primary float-end" type="submit">Отправить</button>
+    </div>
+</EditForm>
+
+@code {
+    private Review? Model { get; set; }
+
+    protected override async Task OnInitializedAsync() 
+    { 
+        Model ??= new();
+        var user = await AuthenticationState.GetAuthenticationStateAsync();
+        if (user != null)
+            Model.UserName = user.User.Identity?.Name!;
+    }
+
+    private void ChangeRating(int value) => Model!.Evaluation = value;
+
+    private void Submit()
+    {
+        ReviewService.Add(Model);
+        NavigationManager.NavigateTo("/");
+    }
+}

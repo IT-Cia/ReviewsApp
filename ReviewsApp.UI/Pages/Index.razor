@@ -1,0 +1,135 @@
+﻿@page "/"
+@page "/{role?}"
+
+@using ReviewsApp.DataAccess.Entities;
+@using ReviewsApp.Application;
+
+@inject IDataService<Review> ReviewService;
+
+<PageTitle>Отзывы</PageTitle>
+
+<h1>Отзывы</h1>
+
+<div class="head-panel">
+    <a href="reviews/add" class="btn btn-lg btn-primary mt-2 mb-2">Написать отзыв</a>
+</div>
+<div class="main-block">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Организация</th>
+                <th scope="col">Адрес</th>
+                <th scope="col">Оценка</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var review in reviews)
+            {
+                <tr>
+                    <th scope="row">@review.Id</th>
+                    <td>@review.OrganisationName</td>
+                    <td>@review.OrganisationAddress</td>
+                    <td>
+                        <div class="rating" data-fbs-toggle="rating" data-bs-readonly="true">
+                            <label class="@((review.Evaluation >= 1? "rating-item active" : "rating-item"))">
+                                <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                                <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                            </label>
+                            <label class="@((review.Evaluation >= 2? "rating-item active" : "rating-item"))">
+                                <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                                <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                            </label>
+                            <label class="@((review.Evaluation >= 3? "rating-item active" : "rating-item"))">
+                                <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                                <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                            </label>
+                            <label class="@((review.Evaluation >= 4? "rating-item active" : "rating-item"))">
+                                <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                                <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                            </label>
+                            <label class="@((review.Evaluation >= 5? "rating-item active" : "rating-item"))">
+                                <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                                <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                            </label>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="reviews/show/@((review.Id))" class="btn btn-default">
+                            <span><i class="fa-solid fa-eye"></i></span>
+                        </a>
+                        @if (Role == "Admin")
+                        {
+                            <button @onclick="(e => Delete(review.Id))" class="btn btn-danger">
+                                <span><i class="fa-solid fa-trash"></i></span>
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="foot-panel">
+    <button @onclick="AddNext" class="btn btn-lg btn-success">Загрузить следующие</button>
+</div>
+<ConfirmDialog @ref="dialog"/>
+<Toasts class="p-3" Messages="messages" Placement="ToastsPlacement.BottomRight" />
+
+@code {
+
+    [Parameter]
+    public string? Role { get; set; }
+
+    private List<Review> reviews = new();
+    private List<ToastMessage> messages = new();
+    private ConfirmDialog? dialog;
+
+    protected override void OnInitialized()
+    {
+        reviews = ReviewService.GetLast(5);
+    }
+
+    private void AddNext()
+    {
+        var nextItems = ReviewService.GetNext(5, reviews);
+        if (nextItems.Count == 0)
+            messages.Add(new ToastMessage
+                {
+                    Type = ToastType.Warning,
+                    Title = "Предупреждение",
+                    HelpText = "",
+                    Message = "Отзывов больше нет",
+                    AutoHide = true
+                });
+        else
+            reviews.AddRange(nextItems);
+    }
+
+    private async Task Delete(int id)
+    {
+        if (Role == "Admin")
+        {
+            var confirmation = await dialog!.ShowAsync(
+                title: "Удаление",
+                message1: "Вы уверены, что хотите удалить отзыв?",
+                new ConfirmDialogOptions { YesButtonText = "Да", NoButtonText = "Нет" });
+
+            if (confirmation)
+            {
+                reviews.Remove(ReviewService.GetById(id));
+                ReviewService.Delete(id);
+            }
+        }
+        else
+            messages.Add(new ToastMessage
+                {
+                    Type = ToastType.Danger,
+                    Title = "Ошибка",
+                    HelpText = "",
+                    Message = "Нет прав на удаление отзыва",
+                    AutoHide = true
+                });
+    }
+}

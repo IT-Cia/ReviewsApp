@@ -1,0 +1,86 @@
+﻿@page "/reviews/show/{id:int}"
+
+@using ReviewsApp.DataAccess.Entities;
+@using ReviewsApp.Application;
+
+@inject IDataService<Review> ReviewService;
+
+<h3>Отзыв №@Id</h3>
+
+<div class="main-block">
+    <div class="row mb-3">
+        <label for="inputUserName" class="col-sm-2 col-form-label">Имя пользователя</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="inputUserName" value="@review.UserName" readonly>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputOrganisation" class="col-sm-2 col-form-label">Название организации</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="inputOrganisation" value="@review.OrganisationName" readonly>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputAddress" class="col-sm-2 col-form-label">Адрес организации</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="inputAddress" value="@review.OrganisationAddress" readonly>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputAdvantages" class="col-sm-2 col-form-label">Что понравилось</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" id="inputAdvantages" readonly>@review.Advantages</textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputDisadvantages" class="col-sm-2 col-form-label">Что не понравилось</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" id="inputDisadvantages" readonly>@review.Disadvantages</textarea>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <label for="inputComments" class="col-sm-2 col-form-label">Комментарии</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" id="inputComments" readonly>@review.Comments</textarea>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Оценка</label>
+        <div class="col-sm-10">
+            <div class="rating" data-fbs-toggle="rating" data-bs-readonly="true">
+                <label class="@((review.Evaluation >= 1? "rating-item active" : "rating-item"))">
+                    <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                    <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                </label>
+                <label class="@((review.Evaluation >= 2? "rating-item active" : "rating-item"))">
+                    <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                    <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                </label>
+                <label class="@((review.Evaluation >= 3? "rating-item active" : "rating-item"))">
+                    <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                    <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                </label>
+                <label class="@((review.Evaluation >= 4? "rating-item active" : "rating-item"))">
+                    <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                    <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                </label>
+                <label class="@((review.Evaluation >= 5? "rating-item active" : "rating-item"))">
+                    <span class="rating-icon"><i class="fa-regular fa-star"></i></span>
+                    <span class="rating-icon"><i class="fa-solid fa-star"></i></span>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Review review = new();
+
+    protected override void OnInitialized()
+    {
+        review = ReviewService.GetById(Id);
+    }
+}
